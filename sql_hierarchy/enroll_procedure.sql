@@ -7,6 +7,8 @@ BEGIN
     CREATE TABLE #enroll_control(
         m_group CHAR(3),
         m_id CHAR(12),
+        m_primary CHAR(1) CHECK(m_primary IN (NULL, 'P', 'H')),
+        m_secondary CHAR(1) CHECK(m_secondary IN (NULL, 'B', 'C', 'G', 'O')),
         max_count INT DEFAULT 0,
         current_count INT DEFAULT 0,
         PRIMARY KEY(m_group, m_id),
@@ -25,7 +27,7 @@ BEGIN
     DELETE FROM reject_enroll;
 
     -- load enroll
-    INSERT INTO #enroll_control(m_group, m_id, max_count) SELECT m_group, m_id, COALESCE(m_max_enroll, 2147483647) FROM majors;
+    INSERT INTO #enroll_control(m_group, m_id,m_primary,m_secondary, max_count) SELECT m_group, m_id, m_primary,m_secondary, COALESCE(m_max_enroll, 2147483647) FROM majors;
 
     DECLARE @id CHAR(14);
     DECLARE @adjust CHAR(1);
@@ -40,6 +42,8 @@ BEGIN
     DECLARE @enroll6 CHAR(12);
     DECLARE @current_enroll CHAR(12);
     DECLARE @reject_term CHAR(100);
+    DECLARE @requirement_primary CHAR(1);
+    DECLARE @requirement_secondary CHAR(1);
     DECLARE cur_candidate CURSOR LOCAL FORWARD_ONLY FOR SELECT c_id, c_adjust, c_primary, c_secondary, c_group, c_enroll1, c_enroll2, c_enroll3, c_enroll4, c_enroll5, c_enroll6 FROM candidates;  
 
     OPEN cur_candidate
@@ -47,8 +51,7 @@ BEGIN
     FETCH NEXT FROM cur_candidate INTO @id, @adjust, @primary, @secondary, @group, @enroll1, @enroll2, @enroll3, @enroll4, @enroll5, @enroll6
     WHILE(@@FETCH_STATUS = 0)
     BEGIN
-        PRINT @id
-        IF(@enroll1 IS NOT NULL)
+        IF(@enroll1 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll1) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll1)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll1) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll1)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll1;
@@ -66,7 +69,7 @@ BEGIN
             END CATCH
         END
 
-        IF(@enroll2 IS NOT NULL)
+        IF(@enroll2 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll2) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll2)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll2) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll2)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll2;
@@ -84,7 +87,7 @@ BEGIN
             END CATCH
         END
 
-        IF(@enroll3 IS NOT NULL)
+        IF(@enroll3 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll3) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll3)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll3) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll3)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll3;
@@ -102,7 +105,7 @@ BEGIN
             END CATCH
         END
 
-        IF(@enroll4 IS NOT NULL)
+        IF(@enroll4 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll4) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll4)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll4) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll4)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll4;
@@ -120,7 +123,7 @@ BEGIN
             END CATCH
         END
 
-        IF(@enroll5 IS NOT NULL)
+        IF(@enroll5 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll5) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll5)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll5) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll5)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll5;
@@ -138,7 +141,7 @@ BEGIN
             END CATCH
         END
 
-        IF(@enroll6 IS NOT NULL)
+        IF(@enroll6 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll6) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll6)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll6) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll6)), 0) != 0))
         BEGIN
             BEGIN TRY
                 UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @enroll6;
@@ -156,7 +159,7 @@ BEGIN
             END CATCH
         END
 
-        SET @reject_term = "ENROLL/NORM::EMPTY REJECT";
+        SET @reject_term = "ENROLL/NORM::EMPTY/REQUIREMENT REJECT";
         GOTO Reject;
         Success:
             INSERT INTO accept_enroll(c_id, c_enroll, c_group, c_adjust) VALUES(@id, @current_enroll, @group, 'N');
