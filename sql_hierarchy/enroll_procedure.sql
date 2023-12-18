@@ -44,7 +44,7 @@ BEGIN
     DECLARE @reject_term CHAR(100);
     DECLARE @requirement_primary CHAR(1);
     DECLARE @requirement_secondary CHAR(1);
-    DECLARE cur_candidate CURSOR LOCAL FORWARD_ONLY FOR SELECT c_id, c_adjust, c_primary, c_secondary, c_group, c_enroll1, c_enroll2, c_enroll3, c_enroll4, c_enroll5, c_enroll6 FROM candidates;  
+    DECLARE cur_candidate CURSOR LOCAL FORWARD_ONLY FOR SELECT c_id, c_adjust, c_primary, c_secondary, c_group, c_enroll1, c_enroll2, c_enroll3, c_enroll4, c_enroll5, c_enroll6 FROM candidates ORDER BY c_rank;  
 
     OPEN cur_candidate
 

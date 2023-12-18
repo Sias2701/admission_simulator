@@ -15,5 +15,8 @@ CREATE TABLE candidates(
     c_enroll4 CHAR(12) FOREIGN KEY REFERENCES majors(m_id),
     c_enroll5 CHAR(12) FOREIGN KEY REFERENCES majors(m_id),
     c_enroll6 CHAR(12) FOREIGN KEY REFERENCES majors(m_id),
-    PRIMARY KEY(c_rank)
+    PRIMARY KEY CLUSTERED(c_rank ASC),
+    CHECK(c_type IN (SELECT t_id FROM candidate_type_info)),
+    CHECK(c_group IN (SELECT g_id FROM major_groups WHERE g_type = c_type))
 );
+
