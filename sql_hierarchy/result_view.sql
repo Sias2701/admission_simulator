@@ -12,7 +12,7 @@ GO
 CREATE OR ALTER PROCEDURE accept_list_stat_major
 AS
 BEGIN
-    SELECT m_id, m_name, MAX(c_score) AS max_score, MIN(c_score) AS min_score, MIN(c_rank) AS max_rank, MAX(c_rank) AS min_rank, AVG(c_score) AS avg_score FROM final_enroll_view_all INNER JOIN majors ON final_enroll_view_all.c_enroll = majors.m_id GROUP BY m_id,m_name
+    SELECT m_id, m_name, m_faculty, MAX(c_score) AS max_score, MIN(c_score) AS min_score, MIN(c_rank) AS max_rank, MAX(c_rank) AS min_rank, AVG(c_score) AS avg_score FROM final_enroll_view_all INNER JOIN majors ON final_enroll_view_all.c_enroll = majors.m_id GROUP BY m_id,m_name
 END
 
 GO
