@@ -9,11 +9,8 @@ CREATE OR ALTER PROCEDURE final_accept_list
     @adjust CHAR(1)
 AS
 BEGIN
-    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
-    BEGIN TRANSACTION
         IF(@adjust = 'Y')
             SELECT * FROM final_enroll_view_all WHERE c_adjust = 'Y';
         ELSE
             SELECT * FROM final_enroll_view_all WHERE c_adjust = 'N';
-    COMMIT TRANSACTION
 END
