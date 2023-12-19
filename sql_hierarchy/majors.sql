@@ -12,4 +12,3 @@ CREATE TABLE majors(
 
 CREATE INDEX major_group ON majors(m_group);
 CREATE INDEX major_faculty ON majors(m_faculty);
-CREATE INDEX major_primary ON majors(m_primary);

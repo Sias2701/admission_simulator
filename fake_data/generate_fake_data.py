@@ -104,13 +104,3 @@ for i in tqdm(range(len(candidates))):
     else:
         insert_str += '),\n'
     out_file.write(insert_str)
-# SQL_QUERY = """
-# SELECT * FROM major_groups;
-# """
-# 
-# cursor = conn.cursor()
-# cursor.execute(SQL_QUERY)
-# 
-# records = cursor.fetchall()
-# for r in records:
-#     print(r.g_id)

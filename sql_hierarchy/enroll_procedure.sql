@@ -2,7 +2,6 @@ USE admission;
 GO
 
 CREATE OR ALTER PROCEDURE apply_enroll AS
-
 BEGIN
     CREATE TABLE #enroll_control(
         m_group CHAR(3),
@@ -14,21 +13,13 @@ BEGIN
         PRIMARY KEY(m_group, m_id),
         CHECK(current_count <= max_count)
     );
-
     CREATE TABLE #adjust_control(
         c_id CHAR(14),
         c_group CHAR(3)
     );
-
-    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
-    BEGIN TRANSACTION
-
-    DELETE FROM accept_enroll;
-    DELETE FROM reject_enroll;
-
-    -- load enroll
-    INSERT INTO #enroll_control(m_group, m_id,m_primary,m_secondary, max_count) SELECT m_group, m_id, m_primary,m_secondary, COALESCE(m_max_enroll, 2147483647) FROM majors;
-
+    DELETE FROM accept_enroll WITH (HOLDLOCK);
+    DELETE FROM reject_enroll WITH (HOLDLOCK);
+    INSERT INTO #enroll_control(m_group, m_id,m_primary,m_secondary, max_count) SELECT m_group, m_id, m_primary,m_secondary, COALESCE(m_max_enroll, 2147483647) FROM majors WITH (HOLDLOCK);
     DECLARE @id CHAR(14);
     DECLARE @adjust CHAR(1);
     DECLARE @primary CHAR(1);
@@ -44,10 +35,8 @@ BEGIN
     DECLARE @reject_term CHAR(100);
     DECLARE @requirement_primary CHAR(1);
     DECLARE @requirement_secondary CHAR(1);
-    DECLARE cur_candidate CURSOR LOCAL FORWARD_ONLY FOR SELECT c_id, c_adjust, c_primary, c_secondary, c_group, c_enroll1, c_enroll2, c_enroll3, c_enroll4, c_enroll5, c_enroll6 FROM candidates ORDER BY c_rank;  
-
+    DECLARE cur_candidate CURSOR LOCAL FORWARD_ONLY FOR SELECT c_id, c_adjust, c_primary, c_secondary, c_group, c_enroll1, c_enroll2, c_enroll3, c_enroll4, c_enroll5, c_enroll6 FROM candidates WITH (HOLDLOCK) ORDER BY c_rank;  
     OPEN cur_candidate
-
     FETCH NEXT FROM cur_candidate INTO @id, @adjust, @primary, @secondary, @group, @enroll1, @enroll2, @enroll3, @enroll4, @enroll5, @enroll6
     WHILE(@@FETCH_STATUS = 0)
     BEGIN
@@ -61,7 +50,6 @@ BEGIN
             BEGIN CATCH
             END CATCH
         END
-
         IF(@enroll2 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll2) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll2)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll2) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll2)), 0) != 0))
         BEGIN
             BEGIN TRY
@@ -72,7 +60,6 @@ BEGIN
             BEGIN CATCH
             END CATCH
         END
-
         IF(@enroll3 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll3) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll3)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll3) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll3)), 0) != 0))
         BEGIN
             BEGIN TRY
@@ -83,7 +70,6 @@ BEGIN
             BEGIN CATCH
             END CATCH
         END
-
         IF(@enroll4 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll4) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll4)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll4) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll4)), 0) != 0))
         BEGIN
             BEGIN TRY
@@ -94,7 +80,6 @@ BEGIN
             BEGIN CATCH
             END CATCH
         END
-
         IF(@enroll5 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll5) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll5)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll5) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll5)), 0) != 0))
         BEGIN
             BEGIN TRY
@@ -105,7 +90,6 @@ BEGIN
             BEGIN CATCH
             END CATCH
         END
-
         IF(@enroll6 IS NOT NULL AND (((SELECT m_primary FROM majors WHERE m_id = @enroll6) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @enroll6)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @enroll6) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @enroll6)), 0) != 0))
         BEGIN
             BEGIN TRY
@@ -123,7 +107,6 @@ BEGIN
             SET @reject_term = "ENROLL/NORM::PROCEDURE REJECT"
             GOTO Reject;
         END
-
         Success:
             INSERT INTO accept_enroll(c_id, c_enroll, c_group, c_adjust) VALUES(@id, @current_enroll, @group, 'N');
             GOTO Next_element;
@@ -133,18 +116,12 @@ BEGIN
         Reject:
             INSERT INTO reject_enroll(c_id, reject_term) VALUES (@id, @reject_term);
             GOTO Next_element;
-
         Next_element:
         FETCH NEXT FROM cur_candidate INTO @id, @adjust, @primary, @secondary, @group, @enroll1, @enroll2, @enroll3, @enroll4, @enroll5, @enroll6
     END
-    
-
     DEALLOCATE cur_candidate;
-
     DECLARE cur_adjust CURSOR LOCAL FORWARD_ONLY FOR SELECT * FROM #adjust_control;
-
     OPEN cur_adjust;
-
     FETCH NEXT FROM cur_adjust INTO @id, @group
     WHILE(@@FETCH_STATUS = 0)
     BEGIN
@@ -176,7 +153,6 @@ BEGIN
                 BREAK
                 SET @flag = 1;
         END
-
         IF(@flag = 1)
         BEGIN
             FETCH NEXT FROM cur_adjust INTO @id, @group
@@ -184,14 +160,8 @@ BEGIN
         END
         ELSE
             INSERT INTO reject_enroll(c_id, reject_term) VALUES (@id, "ENROLL/ADJUST::REJECT");
-
         DEALLOCATE cur_gp_major;
         FETCH NEXT FROM cur_adjust INTO @id, @group
-
     END
-
     DEALLOCATE cur_adjust;
-
-    COMMIT TRANSACTION
-
 END

@@ -6,14 +6,14 @@ SELECT accept_enroll.c_id, accept_enroll.c_group, c_enroll, accept_enroll.c_adju
 GO
 
 CREATE OR ALTER PROCEDURE final_accept_list
-    @adjust_only CHAR(1)
+    @adjust CHAR(1)
 AS
 BEGIN
     SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
     BEGIN TRANSACTION
-        IF(@adjust_only = 'Y')
+        IF(@adjust = 'Y')
             SELECT * FROM final_enroll_view_all WHERE c_adjust = 'Y';
         ELSE
-            SELECT * FROM final_enroll_view_all;
+            SELECT * FROM final_enroll_view_all WHERE c_adjust = 'N';
     COMMIT TRANSACTION
 END
