@@ -2,8 +2,8 @@ USE admission;
 
 CREATE TABLE candidates(
     c_id CHAR(14) NOT NULL UNIQUE,
-    c_score FLOAT NOT NULL,
-    c_rank INT NOT NULL,
+    c_score FLOAT NOT NULL CHECK(c_score >= 0),
+    c_rank INT NOT NULL CHECK(c_rank > 0),
     c_adjust CHAR(1) NOT NULL CHECK(c_adjust IN ('A', 'R')),
     c_type CHAR(3) NOT NULL FOREIGN KEY REFERENCES candidate_type_info(t_id) ON UPDATE CASCADE,
     c_primary CHAR(1) NOT NULL CHECK(c_primary IN ('P', 'H')),

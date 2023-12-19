@@ -59,13 +59,6 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
 
@@ -77,13 +70,6 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
 
@@ -95,13 +81,6 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
 
@@ -113,13 +92,6 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
 
@@ -131,13 +103,6 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
 
@@ -149,18 +114,16 @@ BEGIN
                 GOTO Success;
             END TRY
             BEGIN CATCH
-                IF(@adjust = 'A')
-                    GOTO Adjustment;
-                ELSE
-                BEGIN
-                    SET @reject_term = "ENROLL/NORM::ADJUSTMENT REJECT"
-                    GOTO Reject;
-                END
             END CATCH
         END
+        IF(@adjust = 'A')
+                    GOTO Adjustment;
+        ELSE
+        BEGIN
+            SET @reject_term = "ENROLL/NORM::PROCEDURE REJECT"
+            GOTO Reject;
+        END
 
-        SET @reject_term = "ENROLL/NORM::EMPTY/REQUIREMENT REJECT";
-        GOTO Reject;
         Success:
             INSERT INTO accept_enroll(c_id, c_enroll, c_group, c_adjust) VALUES(@id, @current_enroll, @group, 'N');
             GOTO Next_element;
@@ -193,8 +156,16 @@ BEGIN
         WHILE(@@FETCH_STATUS = 0)
         BEGIN
             BEGIN TRY
-                UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @current_enroll;
+                IF (((SELECT m_primary FROM majors WHERE m_id = @current_enroll) IS NULL) OR COALESCE(CHARINDEX(@primary, (SELECT m_primary FROM majors WHERE m_id = @current_enroll)), 0) != 0) AND (((SELECT m_secondary FROM majors WHERE m_id = @current_enroll) IS NULL) OR COALESCE(CHARINDEX(@secondary, (SELECT m_secondary FROM majors WHERE m_id = @current_enroll)), 0) != 0)
+                BEGIN
+                    UPDATE #enroll_control SET current_count = current_count + 1 WHERE m_group = @group AND m_id = @current_enroll;
                 GOTO Adjustsuccess;
+                END
+                ELSE
+                BEGIN
+                    FETCH NEXT FROM cur_gp_major INTO @current_enroll;
+                    CONTINUE;
+                END
             END TRY
             BEGIN CATCH
                 FETCH NEXT FROM cur_gp_major INTO @current_enroll;
@@ -207,12 +178,16 @@ BEGIN
         END
 
         IF(@flag = 1)
+        BEGIN
+            FETCH NEXT FROM cur_adjust INTO @id, @group
             CONTINUE
+        END
         ELSE
             INSERT INTO reject_enroll(c_id, reject_term) VALUES (@id, "ENROLL/ADJUST::REJECT");
-        DEALLOCATE cur_gp_major;
 
+        DEALLOCATE cur_gp_major;
         FETCH NEXT FROM cur_adjust INTO @id, @group
+
     END
 
     DEALLOCATE cur_adjust;
