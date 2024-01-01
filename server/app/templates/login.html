@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Log in</title>
+    </head>
+    <body>
+        <h1>
+            Log in to access admission simulator
+        </h1>
+        {% if error %}
+        <p style="color: red;"> {{ error }}</p>
+        {% endif %}
+        <form id="login_from" method="post">
+            Username <input type="text" name="user" id="user"> <br>
+            Password <input type="password" name="pass" id="pass"> <br>
+            <input type="submit" value="Login"/>
+        </form>
+    </body>
+</html>
