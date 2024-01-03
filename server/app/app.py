@@ -10,7 +10,17 @@ app = Flask("admission_simulator")
 
 @app.route("/", methods = ['GET'])
 def hello_world():
-    return "<p>Hello, World!</p>"
+    iv = request.cookies.get('session')
+    ct = request.cookies.get('expire')
+    if iv == None or ct == None:
+        return redirect('/login')
+
+    if check_session(bytes.fromhex(iv), bytes.fromhex(ct), 'admin'):
+        return redirect('/dashboard/admin')
+    
+    if check_session(bytes.fromhex(iv), bytes.fromhex(ct), 'user'):
+        return redirect('/dashboard/user')
+    return redirect('/login')
 
 @app.route("/dashboard/admin")
 def hello_admin():
