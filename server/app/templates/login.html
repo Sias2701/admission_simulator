@@ -1,20 +1,64 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>Log in</title>
-    </head>
-    <body>
-        <h1>
-            Log in to access admission simulator
-        </h1>
-        {% if error %}
-        <p style="color: red;"> {{ error }}</p>
-        {% endif %}
-        <form id="login_from" method="post">
-            Username <input type="text" name="user" id="user"> <br>
-            Password <input type="password" name="pass" id="pass"> <br>
-            <input type="submit" value="Login"/>
-        </form>
-    </body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.101.0">
+    <title>Signin Template · Bootstrap v4.6</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.6/examples/sign-in/">
+
+    <link href="{{url_for('static', filename='assets/dist/css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    <link href={{url_for('static', filename='assets/signin.css')}} rel="stylesheet">
+  </head>
+  <body class="text-center">
+<div class="form-signin">
+  <form method="post" onsubmit="return submit_form()">
+
+    <h1 class="h3 mb-3 font-weight-normal">模拟志愿录取系统</h1>
+    
+    <input type="text" id="uname", name="user" value="" placeholder="请输入用户名"/><br>
+    <input type="password" id="pwd", name="pass" value="" placeholder="请输入密码"/><br>
+    {% if error %}
+          <p style="color: red;"> {{ error }}</p>
+    {% endif %}
+    <input class="btn btn-lg btn-primary btn-block" type="submit" id="but" value="登录" onclick="submit()"/> 
+    
+  </form>
+</div>
+
+<script src={{url_for('static', filename='js/crypto-js.min.js')}}></script>
+<script type="text/javascript"> 
+    function submit_form() {
+      if(document.getElementById('pwd').value == '') {
+          return false
+      }
+      if(document.getElementById('pwd').value == '') {
+          return false
+      }
+      const hashed = CryptoJS.SHA512(document.getElementById('pwd').value).toString()
+      document.getElementById('pwd').value = hashed
+      return true
+    } 
+</script> 
 </html>

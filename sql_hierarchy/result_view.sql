@@ -5,14 +5,20 @@ CREATE OR ALTER VIEW final_enroll_view_all AS
 SELECT accept_enroll.c_id, accept_enroll.c_group, c_enroll, accept_enroll.c_adjust, c_score, c_rank FROM accept_enroll INNER JOIN candidates ON accept_enroll.c_id = candidates.c_id;
 GO
 
+CREATE OR ALTER VIEW final_enroll_view_all_n AS
+SELECT accept_enroll.c_id, accept_enroll.c_group, (SELECT m_name FROM majors WHERE m_id IN (c_enroll)) AS c_major_name, accept_enroll.c_adjust, c_score, c_rank FROM accept_enroll INNER JOIN candidates ON accept_enroll.c_id = candidates.c_id;
+GO
+
 CREATE OR ALTER VIEW final_accept_adjust AS
 SELECT * FROM final_enroll_view_all WHERE c_adjust = 'Y';
 GO
 
+CREATE OR ALTER VIEW final_accept_adjust_n AS
+SELECT * FROM final_enroll_view_all_n WHERE c_adjust = 'Y';
+GO
+
 CREATE OR ALTER VIEW accept_list_stat_major
 AS SELECT m_id, m_name, MAX(c_score) AS max_score, MIN(c_score) AS min_score, MIN(c_rank) AS max_rank, MAX(c_rank) AS min_rank, AVG(c_score) AS avg_score FROM final_enroll_view_all INNER JOIN majors ON final_enroll_view_all.c_enroll = majors.m_id GROUP BY m_id,m_name
-
-
 GO
 
 CREATE OR ALTER VIEW accept_list_stat_faculty
