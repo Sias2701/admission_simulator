@@ -36,7 +36,7 @@
   <body>
     
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">模拟志愿录取系统(管理员)</a>
+  <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">模拟志愿录取系统</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -59,32 +59,32 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="2-1录取结果详情（按专业） copy.html">
+            <a class="nav-link" href={{url_for("admin_admission_result")}}>
              
-              <span data-feather="file"></span>
+              <span data-feather="layers"></span>
               录取结果
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="3退档队列详情.html">
-              <span data-feather="shopping-cart"></span>
+            <a class="nav-link" href={{url_for("admin_reject_enroll")}}>
+              <span data-feather="users"></span>
               退档队列
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="4调剂队列详情.html">
+            <a class="nav-link" href={{url_for("admin_adjustment_enroll")}}>
               <span data-feather="users"></span>
               调剂队列
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="5成绩分析详情.html">
+            <a class="nav-link" href={{url_for("admin_static")}}>
               <span data-feather="bar-chart-2"></span>
               成绩分析
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href={{url_for("admin_upload")}}>
               <span data-feather="file"></span>
               上传考生数据
             </a>

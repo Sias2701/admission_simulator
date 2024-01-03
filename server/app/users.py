@@ -1,5 +1,6 @@
 import threading
 import time
+import datetime
 import secrets
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
@@ -18,7 +19,7 @@ SESSIONS = {}
 
 SESSION_LOCK = threading.Lock()
 
-EXPIRE_DELTA = 300000000000
+EXPIRE_DELTA = 300
 
 def load_user():
     USER_LOCK.acquire()
@@ -42,7 +43,7 @@ def save_user():
 def issue_session(user_type):
     iv = secrets.token_bytes(16)
     cipher = AES.new(SECRET_KEY, AES.MODE_CBC, iv)
-    info = pad(f'{user_type}:{str(time.clock_gettime_ns(0) + EXPIRE_DELTA)}'.encode(), 16)
+    info = pad(f'{user_type}:{str(int(time.mktime(datetime.datetime.now().timetuple())) + EXPIRE_DELTA)}'.encode(), 16)
 
     session = iv.hex(), cipher.encrypt(info).hex()
 
@@ -53,9 +54,8 @@ def check_session(iv, ciphertext, target_type):
     info = unpad(cipher.decrypt(ciphertext), 16).decode()
     user_type = info.split(':')[0]
     timestamp = int(info.split(':')[1])
-    if timestamp > time.clock_gettime_ns(0) and user_type == target_type:
+    if timestamp > int(time.mktime(datetime.datetime.now().timetuple())) and user_type == target_type:
         return True
-
     return False
 # def add_session(session_id):
 #     SESSION_LOCK.acquire()
